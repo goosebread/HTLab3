@@ -42,7 +42,7 @@ if(shorten_sig == 1) %consider only the the interval given by Start and End Time
     ppg_data = ppg_data(startTime*sampl_rate+1:endTime*sampl_rate);
     
     if startTime~=0
-         ppg_time = ppg_time(startTime*sampl_rate+1:endTime*sampl_rate)-ppg_time(startTime*sampl_rate);
+        ppg_time = ppg_time(startTime*sampl_rate+1:endTime*sampl_rate)-ppg_time(startTime*sampl_rate);
     else
         ppg_time = ppg_time(startTime*sampl_rate+1:endTime*sampl_rate);
     end
@@ -93,7 +93,10 @@ if apply_peak == 1
     [m,s]=plotHRV(ppg_pks_loc);
     fprintf("mean is %f\n",m);
     fprintf("standard deviation is %f\n",s);
+    
 
+    
+    
 end
 plotPower(ppg_data_filtered,sampl_rate,endTime-startTime);
 
@@ -114,33 +117,36 @@ end
 
 function [m,s]=plotHRV(hrarray);
 %hrarray in seconds
-    rates=zeros(1,length(hrarray)-1);%in bpm
-        for i=1:length(rates)
-            rates(i)=1/(hrarray(i+1)-hrarray(i))*60;
-        end
-    xbins=min(rates)-0.05:0.1:max(rates)+0.05;
-    figure
-    histogram(rates,xbins,'Normalization','probability')
-    
-    m=mean(rates);
-    v=var(rates);
-    s=v^(0.5);
+rates=zeros(1,length(hrarray)-1);%in bpm
+for i=1:length(rates)
+    rates(i)=1/(hrarray(i+1)-hrarray(i))*60;
+end
+xbins=min(rates)-0.05:0.1:max(rates)+0.05;
+figure
+hold on
+histogram(rates,xbins,'Normalization','probability')
+ylabel('probablility')
+xlabel('frequency (bpm)')
+title('Heart Rate Variability')
+
+m=mean(rates);
+v=var(rates);
+s=v^(0.5);
 end
 
 function plotPower(data,sr,time)
-    dataP=fft(data);
-     figure
-    hold on
-    freq = (0:(time*sr/2))/time;
+dataP=fft(data);
+figure
+hold on
+freq = (0:(time*sr/2))/time;
 
-    P1=(dataP.*conj(dataP))/(sr*time);
-        
-        semilogx(freq,P1(1:sr*time/2+1))
-        xlabel('Frequency (Hz)')
-        xlim([0 3]);
-        ylim([0,12]);
-        ylabel('Signal Power')
-        title(' Power Spectrum')
+P1=(dataP.*conj(dataP))/(sr*time);
+
+semilogx(freq,P1(1:sr*time/2+1))
+xlabel('Frequency (Hz)')
+xlim([0 3]);
+%ylim([0,12]);
+ylabel('Signal Power')
+title(' Power Spectrum')
 
 end
-
