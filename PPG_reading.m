@@ -90,8 +90,13 @@ if apply_peak == 1
     grid on
     legend(['Heart Rate = ' num2str(heart_rate) ' beats/min'])
     
-    plotHRV(ppg_pks_loc)
+    [m,s]=plotHRV(ppg_pks_loc);
+    fprintf("mean is %f\n",m);
+    fprintf("standard deviation is %f\n",s);
+
 end
+plotPower(ppg_data_filtered,sampl_rate,endTime-startTime);
+
 
 end
 
@@ -107,13 +112,35 @@ data_pks = pks;
 data_pks_loc = time(pks_loc);
 end
 
-function v=plotHRV(hrarray);
-    intervals=zeros(1,length(hrarray)-1);
-        for i=1:length(intervals)
-            intervals(i)=hrarray(i+1)-hrarray(i);
+function [m,s]=plotHRV(hrarray);
+%hrarray in seconds
+    rates=zeros(1,length(hrarray)-1);%in bpm
+        for i=1:length(rates)
+            rates(i)=1/(hrarray(i+1)-hrarray(i))*60;
         end
-    xbins=min(intervals)-0.0005:0.001:max(intervals)+0.0005;
+    xbins=min(rates)-0.05:0.1:max(rates)+0.05;
     figure
-    histogram(intervals,xbins)
+    histogram(rates,xbins,'Normalization','probability')
+    
+    m=mean(rates);
+    v=var(rates);
+    s=v^(0.5);
+end
+
+function plotPower(data,sr,time)
+    dataP=fft(data);
+     figure
+    hold on
+    freq = (0:(time*sr/2))/time;
+
+    P1=(dataP.*conj(dataP))/(sr*time);
+        
+        semilogx(freq,P1(1:sr*time/2+1))
+        xlabel('Frequency (Hz)')
+        xlim([0 3]);
+        ylim([0,12]);
+        ylabel('Signal Power')
+        title(' Power Spectrum')
+
 end
 
